@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "campus-customs": {
+      "type": "stdio",
+      "command": "C:\\Users\\majma\\.venvs\\hw5\\Scripts\\python.exe",
+      "args": ["mcp_server/server.py"],
+      "env": {
+        "PYTHONUTF8": "1"
+      }
+    }
+  }
+}

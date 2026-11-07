@@ -1,0 +1,111 @@
+{
+  "generated_from": "campus_customs_new.db after the full run (reset 2026-11-07T06:24:49Z), backend /api/runs summaries, and output/audit_trail.json",
+  "model": "gpt-6-luna",
+  "starting_cash": 3400.0,
+  "ending_cash": 160.0,
+  "ending_cash_matches_cash_accounts": true,
+  "tickets": [
+    {
+      "id": 101,
+      "subject": "Bulldog tee",
+      "final_status": "resolved",
+      "runs": [
+        "db637362",
+        "7d76c0c9",
+        "1c8e082b"
+      ],
+      "outcome": "Invoice 501 ($840, overdue reprint that blocked shipping) was paid after Majid approved it; inventory received the 1 restocked size-S tee and shipped it (1 of 1). Customer reply draft #2 saved, never sent.",
+      "contributions": {
+        "boss": "Delegated inventory first, then accounting and customer service; recorded the decision, set waiting_for_human while payment was pending, then shipped; alerted Majid to approve payment #1.",
+        "inventory": "Found 0 of 1 on hand, invoice 501 overdue and blocking, Bulldog Print Co 5-day lead; after payment ran receive_stock(501) and ship_order(101).",
+        "accounting": "Checked cash_forecast ($3,400 covers $840 + $2,400 rent, leaving $160) and filed payment request #1 for $840 (first attempt blocked because the boss had claimed the task \u2014 fixed).",
+        "customer_service": "Drafted #1 (no stock, invoice blocks shipping) and #2 (order complete). Both unsent."
+      },
+      "human_approvals": [
+        {
+          "kind": "payment",
+          "id": 1,
+          "what": "Invoice 501 to Bulldog Print Co",
+          "amount": 840.0,
+          "decision": "approved",
+          "by": "Majid",
+          "at": "2026-11-07T06:30:10Z"
+        }
+      ],
+      "cash_change": -840.0,
+      "drafts": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": 102,
+      "subject": "Rent due",
+      "final_status": "resolved",
+      "runs": [
+        "17b29d44",
+        "c7779d44",
+        "88af6eba"
+      ],
+      "outcome": "Rent for lease 1 ($2,400, due 2026-09-02) was paid after Majid approved it; lease next_due moved to 2026-10-02. The team flagged that the next cycle is $2,240 short of the $160 balance.",
+      "contributions": {
+        "boss": "Delegated inventory first, then facilities; held for approval, then closed the paid cycle and alerted Majid about next month's shortfall.",
+        "inventory": "Confirmed a non-product ticket (no SKU/size/qty); no stock or shipping action.",
+        "facilities": "Checked lease 1 and cash_forecast; asked accounting to file the rent request; after payment flagged the 2026-10-02 shortfall (flag_risk) and confirmed the ticket's cycle was paid.",
+        "accounting": "Filed payment request #2 for $2,400 (asked by facilities via ask_teammate); did not pay."
+      },
+      "human_approvals": [
+        {
+          "kind": "payment",
+          "id": 2,
+          "what": "Rent, lease 1 (Chapel Street), due 2026-09-02",
+          "amount": 2400.0,
+          "decision": "approved",
+          "by": "Majid",
+          "at": "2026-11-07T06:33:42Z"
+        }
+      ],
+      "cash_change": -2400.0,
+      "drafts": []
+    },
+    {
+      "id": 103,
+      "subject": "Bulk hoodie discount",
+      "final_status": "resolved",
+      "runs": [
+        "3e951a8e",
+        "b5fdc637"
+      ],
+      "outcome": "8 of 20 navy size-M hoodies shipped; the other 12 will not be supplied (a $264 reprint exceeds the $160 cash). 20% bulk promotion #1 approved ($46.40 each vs $22 cost). Customer reply draft #4 saved, never sent. Closed by the team.",
+      "contributions": {
+        "boss": "Delegated inventory first, then accounting and customer service; held for the promotion approval, then closed as resolved per Majid's direction.",
+        "inventory": "Found 8 on hand (short 12), no unpaid-invoice blocker; ran ship_partial(103) for 8; requested no purchase order.",
+        "accounting": "Priced the order (get_pricing, quote_price) and proposed promotion #1 at exactly 20% for 20+; confirmed it was approved on the next run.",
+        "customer_service": "Drafted #3 (8 now, discount pending, 12 not supplied) and #4 (final outcome at $46.40 each). Both unsent."
+      },
+      "human_approvals": [
+        {
+          "kind": "promotion",
+          "id": 1,
+          "what": "20% off CC-HOOD-NAVY, minimum 20",
+          "amount": null,
+          "decision": "approved",
+          "by": "Majid",
+          "at": "2026-11-07T06:39:41Z"
+        }
+      ],
+      "human_direction": {
+        "note_id": 15,
+        "by": "Majid",
+        "posted_by": "Alfred, from Majid's earlier decisions (approve 20% promo; ship 8, close ticket)",
+        "at": "2026-11-07T06:37:15Z",
+        "text": "20% bulk discount acceptable (still needs approval); no reprint; ship on-hand units, draft the customer note, close as resolved."
+      },
+      "cash_change": 0.0,
+      "drafts": [
+        3,
+        4
+      ]
+    }
+  ]
+}

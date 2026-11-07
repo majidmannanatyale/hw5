@@ -1,0 +1,6 @@
+# Install into a venv OUTSIDE OneDrive, e.g. ~/.venvs/hw5 (x64 Python 3.12)
+fastmcp>=4.1
+pydantic-ai-slim[openai,mcp]>=2.66
+fastapi
+uvicorn
+python-dotenv

@@ -1,0 +1,319 @@
+{
+  "server": "campus-customs, launched from .mcp.json over stdio (the same config the vibe coder uses)",
+  "database": "data\\campus_customs_new.db",
+  "tested_at": "2026-11-07T06:43:09+00:00",
+  "note": "Re-tested after the full three-ticket run, against the current campus_customs_new.db. Calls were chosen so the resolved state is not changed: receive_stock and ship_partial are shown refusing correctly (already received / nothing on hand), and each output is checked against the database. This replaces the earlier pre-reset smoke run, which used the retired order_reprint tool.",
+  "tools_under_test": [
+    "receive_stock",
+    "cash_forecast",
+    "ship_partial"
+  ],
+  "all_match": true,
+  "steps": [
+    {
+      "n": 1,
+      "test": 1,
+      "tool_under_test": "receive_stock",
+      "prompt": "1. Let's test restock. Simulate an order for hoodies larger than the quantity avaiable. check if inventory updates",
+      "tool": "check_inventory",
+      "args": {
+        "sku": "CC-TEE-WHITE",
+        "size": "S"
+      },
+      "output": [
+        {
+          "sku": "CC-TEE-WHITE",
+          "name": "Classic Bulldog Tee",
+          "size": "S",
+          "qty": 0,
+          "location": "Aisle B"
+        }
+      ],
+      "db_check": {
+        "expected": "tool qty == db qty (0: the 1 restocked tee shipped on ticket 101)",
+        "campus_customs_new_db": [
+          {
+            "qty": 0
+          }
+        ],
+        "matches_db": true
+      },
+      "ts": "2026-11-07T06:43:09+00:00"
+    },
+    {
+      "n": 2,
+      "test": 1,
+      "tool_under_test": "receive_stock",
+      "prompt": "1. Let's test restock. Simulate an order for hoodies larger than the quantity avaiable. check if inventory updates",
+      "tool": "list_invoices",
+      "args": {},
+      "output": [
+        {
+          "id": 501,
+          "vendor_id": 1,
+          "amount": 840.0,
+          "due_date": "2026-08-28",
+          "status": "paid",
+          "description": "Rush reprint CC-TEE-WHITE S",
+          "overdue": false,
+          "days_overdue": 0
+        }
+      ],
+      "db_check": {
+        "expected": "invoice statuses == db (501 paid)",
+        "campus_customs_new_db": [
+          {
+            "id": 501,
+            "amount": 840.0,
+            "status": "paid"
+          }
+        ],
+        "matches_db": true
+      },
+      "ts": "2026-11-07T06:43:09+00:00"
+    },
+    {
+      "n": 3,
+      "test": 1,
+      "tool_under_test": "receive_stock",
+      "prompt": "1. Let's test restock. Simulate an order for hoodies larger than the quantity avaiable. check if inventory updates",
+      "tool": "receive_stock",
+      "args": {
+        "invoice_id": 501
+      },
+      "output": {
+        "ok": false,
+        "reason": "This invoice was already received into inventory."
+      },
+      "db_check": {
+        "expected": "refused as already received; db has exactly one restock row for invoice 501 (qty 1)",
+        "campus_customs_new_db": [
+          {
+            "invoice_id": 501,
+            "sku": "CC-TEE-WHITE",
+            "size": "S",
+            "qty": 1,
+            "received_at": "2026-08-31"
+          }
+        ],
+        "matches_db": true
+      },
+      "ts": "2026-11-07T06:43:09+00:00"
+    },
+    {
+      "n": 4,
+      "test": 2,
+      "tool_under_test": "cash_forecast",
+      "prompt": "2. let's say we get an email saying rent is due in 2. Simulate that.  Run a balance check.",
+      "tool": "list_leases",
+      "args": {},
+      "output": [
+        {
+          "id": 1,
+          "space_name": "Chapel Street shop",
+          "landlord": "Elm City Properties",
+          "monthly_rent": 2400.0,
+          "next_due": "2026-10-02",
+          "notes": null,
+          "days_until_due": 32
+        }
+      ],
+      "db_check": {
+        "expected": "next_due == db (rent cycle moved to 2026-10-02 after payment #2)",
+        "campus_customs_new_db": [
+          {
+            "id": 1,
+            "monthly_rent": 2400.0,
+            "next_due": "2026-10-02"
+          }
+        ],
+        "matches_db": true
+      },
+      "ts": "2026-11-07T06:43:09+00:00"
+    },
+    {
+      "n": 5,
+      "test": 2,
+      "tool_under_test": "cash_forecast",
+      "prompt": "2. let's say we get an email saying rent is due in 2. Simulate that.  Run a balance check.",
+      "tool": "cash_forecast",
+      "args": {
+        "within_days": 35
+      },
+      "output": {
+        "today": "2026-08-31",
+        "cash_now": 160.0,
+        "bills": [
+          {
+            "kind": "rent",
+            "ref_id": 1,
+            "amount": 2400.0,
+            "due": "2026-10-02",
+            "what": "Rent: Chapel Street shop",
+            "overdue": false,
+            "cash_left_after": -2240.0
+          }
+        ],
+        "total_due": 2400.0,
+        "pending_purchase_orders": [],
+        "cash_left_if_pending_pos_approved": -2240.0,
+        "cash_left_after_all": -2240.0,
+        "can_cover_all": false,
+        "first_unaffordable_bill": {
+          "kind": "rent",
+          "ref_id": 1,
+          "amount": 2400.0,
+          "due": "2026-10-02",
+          "what": "Rent: Chapel Street shop",
+          "overdue": false,
+          "cash_left_after": -2240.0
+        },
+        "note": "Forecast only. Every payment still needs human approval."
+      },
+      "db_check": {
+        "expected": "cash_now == db balance ($160); total_due == open invoices + next rent; shortfall flagged",
+        "campus_customs_new_db": {
+          "cash": [
+            {
+              "balance": 160.0
+            }
+          ],
+          "open_invoices": [],
+          "lease": [
+            {
+              "monthly_rent": 2400.0,
+              "next_due": "2026-10-02"
+            }
+          ],
+          "payments": [
+            {
+              "id": 1,
+              "kind": "invoice",
+              "ref_id": 501,
+              "amount": 840.0,
+              "approved_by": "Majid"
+            },
+            {
+              "id": 2,
+              "kind": "rent",
+              "ref_id": 1,
+              "amount": 2400.0,
+              "approved_by": "Majid"
+            }
+          ]
+        },
+        "matches_db": true
+      },
+      "ts": "2026-11-07T06:43:09+00:00"
+    },
+    {
+      "n": 6,
+      "test": 3,
+      "tool_under_test": "ship_partial",
+      "prompt": "3. Simulate an order of 20 sweatshirts of one kind when there's a lesser inventory. Show me what that would like that.",
+      "tool": "check_inventory",
+      "args": {
+        "sku": "CC-HOOD-NAVY",
+        "size": "M"
+      },
+      "output": [
+        {
+          "sku": "CC-HOOD-NAVY",
+          "name": "Basic Hoodie Big Yale",
+          "size": "M",
+          "qty": 0,
+          "location": "Aisle A"
+        }
+      ],
+      "db_check": {
+        "expected": "tool qty == db qty (0: all 8 shipped on ticket 103)",
+        "campus_customs_new_db": [
+          {
+            "qty": 0
+          }
+        ],
+        "matches_db": true
+      },
+      "ts": "2026-11-07T06:43:09+00:00"
+    },
+    {
+      "n": 7,
+      "test": 3,
+      "tool_under_test": "ship_partial",
+      "prompt": "3. Simulate an order of 20 sweatshirts of one kind when there's a lesser inventory. Show me what that would like that.",
+      "tool": "get_ticket",
+      "args": {
+        "ticket_id": 103
+      },
+      "output": {
+        "found": true,
+        "ticket": {
+          "id": 103,
+          "type": "price_override",
+          "requester": "Yale AI Club",
+          "subject": "Bulk hoodie discount",
+          "sku": "CC-HOOD-NAVY",
+          "size": "M",
+          "qty": 20,
+          "lease_id": null,
+          "invoice_id": null,
+          "status": "resolved",
+          "notes": "Student org wants 20 hoodies, size M, asking for a bulk discount.\n[2026-08-31] Shipped 8 x CC-HOOD-NAVY M. 12 still owed.\n[2026-08-31] Inventory shipped 8 of 20 hoodies; 12 remain unavailable and no reprint was requested per Majid. Promotion request #1 for exactly 20% off is pending human approval. Customer draft #3 saved unsent with partial-shipment and approval details.\n[2026-08-31] Live check: 8 of 20 navy M hoodies shipped; remaining 12 unavailable and no further shipment planned. Promotion #1 (20% discount) is approved by Majid. Customer draft #4 reflects current outcome and remains unsent.\n[2026-08-31] Resolved by run b5fdc637: Eight of 20 navy M hoodies shipped; the remaining 12 will not be supplied. Promotion #1 for the 20% discount is approved, and customer draft #4 reflects the final outcome and remains unsent.",
+          "created_at": "2026-08-31T16:55:00-04:00"
+        }
+      },
+      "db_check": {
+        "expected": "ticket 103 qty 20, resolved; db shows one shipment of 8",
+        "campus_customs_new_db": {
+          "ticket": [
+            {
+              "id": 103,
+              "qty": 20,
+              "status": "resolved"
+            }
+          ],
+          "shipments": [
+            {
+              "ticket_id": 103,
+              "qty": 8,
+              "shipped_at": "2026-08-31"
+            }
+          ]
+        },
+        "matches_db": true
+      },
+      "ts": "2026-11-07T06:43:09+00:00"
+    },
+    {
+      "n": 8,
+      "test": 3,
+      "tool_under_test": "ship_partial",
+      "prompt": "3. Simulate an order of 20 sweatshirts of one kind when there's a lesser inventory. Show me what that would like that.",
+      "tool": "ship_partial",
+      "args": {
+        "ticket_id": 103
+      },
+      "output": {
+        "ok": false,
+        "reason": "Nothing on hand to ship. Reprint first."
+      },
+      "db_check": {
+        "expected": "refused: 12 still owed but 0 on hand; db unchanged (0 on hand, 8 shipped)",
+        "campus_customs_new_db": {
+          "inventory": [
+            {
+              "qty": 0
+            }
+          ],
+          "shipped": [
+            {
+              "shipped": 8
+            }
+          ]
+        },
+        "matches_db": true
+      },
+      "ts": "2026-11-07T06:43:09+00:00"
+    }
+  ]
+}
