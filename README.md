@@ -145,5 +145,6 @@ After the reset, checking is **$3,400.00**. Then run 101 → 102 → 103 from th
 | `output/design.md` | Dashboard design reference |
 | `output/resolved_tickets.json` | Final status, outcome, agent contributions, approvals |
 | `output/resolved_board.html` | Screenshots of each resolved ticket (double-click to enlarge) |
+| `output/dashboard.html` | Read-only snapshot of the Command Deck after the full run: double-click to open without the backend (all tabs, mission reports and replays; running and approving are disabled) |
 | `output/audit_trail.json` | Every agent step, tool call, hand-off and human approval |
 | `output/github_url.txt` | This repository's URL |

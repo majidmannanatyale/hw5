@@ -67,7 +67,17 @@ export type Draft = { id: number; author: string; audience: string; to_name: str
 export type BoardTicket = Ticket & { drafts: Draft[]; notes: unknown; claims: { task: string; agent: string; status: string }[] };
 export type Board = { today: string; tickets: BoardTicket[] };
 
+// Read-only snapshot mode: output/dashboard.html embeds the API responses captured after the
+// full run, so the board can be opened without the backend. Nothing can be run or approved there.
+const SNAPSHOT = (window as unknown as { __CC_SNAPSHOT__?: Record<string, unknown> }).__CC_SNAPSHOT__;
+
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
+  if (SNAPSHOT) {
+    if (init?.method && init.method !== "GET")
+      throw new Error("This is a read-only snapshot. Start the backend and run `npm run dev` to run missions or approve.");
+    if (!(path in SNAPSHOT)) throw new Error(`Not in snapshot: ${path}`);
+    return structuredClone(SNAPSHOT[path]) as T;
+  }
   const res = await fetch(`${API_BASE}/api${path}`, { headers: { "Content-Type": "application/json" }, ...init });
   if (!res.ok) {
     let msg = `${res.status} ${res.statusText}`;
